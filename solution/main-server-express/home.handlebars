@@ -1,4 +1,11 @@
+{{!--
+  Esta es la página principal (la pantalla).
+  Aquí solo pintamos la interfaz y los resultados que nos manda el main server.
+--}}
+
 <div class="row g-3">
+
+  {{!-- BLOQUE: cabecera/introducción --}}
   <div class="col-12">
     <div class="p-4 bg-white rounded shadow-sm">
       <h1 class="h3 mb-2">Anime Explorer</h1>
@@ -8,11 +15,18 @@
     </div>
   </div>
 
+  {{!-- BLOQUE: formulario de búsqueda --}}
   <div class="col-12">
     <div class="p-4 bg-white rounded shadow-sm">
       <h2 class="h5 mb-3">Search animes</h2>
 
+      {{!--
+        Este formulario hace un GET a /search.
+        Los campos (q, genre, sort) viajan como parámetros en la URL.
+      --}}
       <form method="GET" action="/search" class="row g-2 align-items-end">
+
+        {{!-- Campo: título --}}
         <div class="col-md-6">
           <label class="form-label">Title</label>
           <input
@@ -23,12 +37,15 @@
           />
         </div>
 
+        {{!-- Campo: género (se rellena con genresList que viene del servidor) --}}
         <div class="col-md-3">
           <label class="form-label">Genre</label>
 
           <select class="form-select" name="genre">
+            {{!-- Opción “All”: si genre está vacío, queda seleccionada --}}
             <option value="" {{#unless genre}}selected{{/unless}}>All</option>
 
+            {{!-- Recorremos la lista de géneros que viene del API --}}
             {{#each genresList}}
               <option value="{{this}}" {{#if (eq ../genre this)}}selected{{/if}}>
                 {{this}}
@@ -37,6 +54,7 @@
           </select>
         </div>
 
+        {{!-- Campo: ordenación --}}
         <div class="col-md-2">
           <label class="form-label">Sort</label>
           <select class="form-select" name="sort">
@@ -47,31 +65,49 @@
           </select>
         </div>
 
+        {{!-- Botón para lanzar la búsqueda --}}
         <div class="col-md-1 d-grid">
           <button class="btn btn-primary" type="submit">Go</button>
         </div>
       </form>
 
+      {{!-- Si el servidor manda un error, lo enseñamos aquí --}}
       {{#if error}}
         <div class="alert alert-danger mt-3 mb-0">{{error}}</div>
       {{/if}}
 
-      {{#if results}}
+      {{!--
+        Solo enseñamos el bloque de resultados si ya se hizo una búsqueda.
+        (Así, al entrar por primera vez, no sale “No results found” sin sentido)
+      --}}
+      {{#if searched}}
         <div class="mt-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <h3 class="h6 mb-0">Results</h3>
-            <span class="badge bg-secondary">{{total}}</span>
-          </div>
 
+          {{!-- Título del bloque + contador total --}}
+         <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="h6 mb-0">Results</h3>
+            <div class="text-muted small">
+              Showing {{from}}–{{to}} of {{total}}
+            </div>
+          </div>
+          <span class="badge bg-secondary">{{total}}</span>
+        </div>
+
+
+          {{!-- Si hay resultados, los listamos --}}
           {{#if results.length}}
             <div class="list-group mt-2">
               {{#each results}}
                 <div class="list-group-item">
+
+                  {{!-- Línea principal: título y año --}}
                   <div class="d-flex justify-content-between">
                     <strong>{{title}}</strong>
                     {{#if year}}<span class="text-muted">{{year}}</span>{{/if}}
                   </div>
 
+                  {{!-- Línea secundaria: géneros en forma de “chips” --}}
                   {{#if genres}}
                     <div class="small text-muted mt-1">
                       Genres:
@@ -80,12 +116,15 @@
                       {{/each}}
                     </div>
                   {{/if}}
+
                 </div>
               {{/each}}
             </div>
 
+            {{!-- Navegación de páginas --}}
             <div class="d-flex justify-content-between align-items-center mt-3">
               <div class="text-muted small">Page {{page}} / {{totalPages}}</div>
+
               <div class="d-flex gap-2">
                 {{#if hasPrev}}
                   <a class="btn btn-outline-secondary btn-sm"
@@ -93,6 +132,7 @@
                     Prev
                   </a>
                 {{/if}}
+
                 {{#if hasNext}}
                   <a class="btn btn-outline-secondary btn-sm"
                      href="/search?q={{q}}&genre={{genre}}&sort={{sort}}&page={{nextPage}}">
@@ -101,11 +141,18 @@
                 {{/if}}
               </div>
             </div>
+
+          {{!-- Si no hay resultados, avisamos --}}
           {{else}}
-            <div class="alert alert-warning mt-3 mb-0">No results found.</div>
+            <div class="alert alert-warning mt-3 mb-0">
+              No results found.
+            </div>
           {{/if}}
+
         </div>
       {{/if}}
+
     </div>
   </div>
+
 </div>

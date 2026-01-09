@@ -1,13 +1,32 @@
 # Node
 node_modules/
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# OS
+# Env / secrets
+.env
+.env.*
+
+# OS / editor
 .DS_Store
 Thumbs.db
-
-# Env
-.env
-
-# Editor
 .vscode/
+.idea/
+
+# Spring / Java
+target/
+*.class
+*.jar
+*.log
+
+# Maven wrapper caches (optional)
+.mvn/wrapper/*.jar
+
+# Build / dist (si algún día creas)
+dist/
+build/
+
+# Maven installed manually
+solution/apache-maven-3.9.12-bin/

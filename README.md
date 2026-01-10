@@ -73,6 +73,9 @@ To run the project locally, the following tools are required:
 
 * Node.js and npm
 * MongoDB running locally
+* Java 17
+* Maven
+* PostgreSQL
 
 ---
 
@@ -100,8 +103,16 @@ The project requires **two separate terminals**, since there are two servers.
    ```
 
 Once both servers are running, open your browser and access the main server to use the application.
-
 ---
+
+### `solution/spring-server/`
+
+This folder contains a **Spring Boot server** connected to a PostgreSQL database.
+
+Its role is to manage more static and structured data, following the reference architecture provided in the assignment.
+
+The server exposes REST endpoints that can be accessed by the Main Server via HTTP requests.
+
 
 ## Academic context
 

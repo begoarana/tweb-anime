@@ -116,9 +116,7 @@ http://localhost:3000
 And a comprobation that is working: http://localhost:8080/health
 
 
-NOTE: Notes
-
-The dataset used is based on real anime data, so some titles may look unusual.
+NOTE: The dataset used is based on real anime data, so some titles may look unusual.
 
 **AUTHOR**
 Begoña Arana Méndez de Vigo

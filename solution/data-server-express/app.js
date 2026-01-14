@@ -6,6 +6,10 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
 
+const fs = require("fs");
+const csv = require("csv-parser");
+
+
 const app = express();
 const PORT = 4001;
 
@@ -35,22 +39,29 @@ async function connectMongo() {
 
 /**
  * Endpoint simple para comprobar que el servidor está vivo.
- * Muy útil cuando algo “no funciona” y quieres saber si está corriendo.
+
  */
 app.get("/health", (req, res) => {
   res.json({ ok: true, service: "data-server-express", database: DB_NAME });
 });
 
-/**
- * Inserta 3 animes de demo y borra los antiguos de demo.
- * Esto sirve para probar rápido aunque no hayas importado todo el dataset.
- */
+
 app.post("/seed-demo", async (req, res) => {
   const demo = [
-    { title: "Naruto", year: 2002, genres: ["Action", "Adventure"], _demo: true },
-    { title: "One Piece", year: 1999, genres: ["Action", "Adventure"], _demo: true },
-    { title: "Death Note", year: 2006, genres: ["Mystery", "Thriller"], _demo: true }
-  ];
+  { title: "-Socket-", year: 2010, genres: ["Comedy"], type: "Movie", episodes: 1, score: 6.2, _demo: true },
+  { title: "......", year: 2023, genres: ["Horror", "Supernatural"], type: "Music", episodes: 1, score: 6.53, _demo: true },
+  { title: ".hack//G.U. Returner", year: 2007, genres: ["Adventure", "Drama", "Fantasy"], type: "OVA", episodes: 1, score: 6.65, _demo: true },
+  { title: ".hack//G.U. Trilogy", year: 2007, genres: ["Adventure", "Drama", "Fantasy"], type: "Movie", episodes: 1, score: 7.06, _demo: true },
+  { title: "Naruto", year: 2002, genres: ["Action", "Adventure"], type: "TV", episodes: 220, score: 7.9, _demo: true },
+  { title: "One Piece", year: 1999, genres: ["Action", "Adventure"], type: "TV", episodes: 1000, score: 8.7, _demo: true },
+  { title: "Death Note", year: 2006, genres: ["Mystery", "Thriller"], type: "TV", episodes: 37, score: 8.6, _demo: true },
+  { title: "Attack on Titan", year: 2013, genres: ["Action", "Thriller"], type: "TV", episodes: 87, score: 9.0, _demo: true },
+  { title: "Fullmetal Alchemist: Brotherhood", year: 2009, genres: ["Action", "Adventure"], type: "TV", episodes: 64, score: 9.1, _demo: true },
+  { title: "Your Name", year: 2016, genres: ["Drama", "Romance"], type: "Movie", episodes: 1, score: 8.8, _demo: true }
+];
+
+
+
 
   await collection.deleteMany({ _demo: true });
   await collection.insertMany(demo);
@@ -114,7 +125,8 @@ app.get("/animes", async (req, res) => {
         .sort(sortObj)
         .skip(skip)
         .limit(limit)
-        .project({ _id: 0 })
+        .project({ _id: 0, title: 1, year: 1, genres: 1, type: 1, episodes: 1, score: 1 })
+
         .toArray()
     ]);
 
@@ -155,8 +167,117 @@ app.get("/genres", async (req, res) => {
   }
 });
 
+// Importar animes desde details.csv (dataset real)
+// Se llama así: POST /import-details?file=C:\ruta\details.csv&limit=20000
+app.post("/import-details", async (req, res) => {
+  try {
+    const file = (req.query.file || "").trim();
+    const limit = Math.max(1, Number(req.query.limit || 20000));
+
+    if (!file) {
+      return res.status(400).json({
+        ok: false,
+        error: "Missing query param 'file'. Example: ?file=C:\\path\\details.csv"
+      });
+    }
+
+    if (!fs.existsSync(file)) {
+      return res.status(400).json({ ok: false, error: `File not found: ${file}` });
+    }
+
+    let inserted = 0;
+    let seen = 0;
+
+    // Opcional: limpiar antiguos importados (si quieres)
+    // await collection.deleteMany({ _imported: true });
+
+    const bulk = [];
+
+    const parseGenres = (raw) => {
+      // En tu CSV vienen como "['Action', 'Drama']" (string)
+      // Convertimos a array limpio
+      if (!raw || typeof raw !== "string") return [];
+      const trimmed = raw.trim();
+      if (!trimmed.startsWith("[")) return [];
+      return trimmed
+        .replace(/^\[/, "")
+        .replace(/\]$/, "")
+        .split(",")
+        .map(s => s.replace(/'/g, "").replace(/"/g, "").trim())
+        .filter(Boolean);
+    };
+
+    const toNumber = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(file)
+        .pipe(csv())
+        .on("data", (row) => {
+          if (inserted >= limit) return;
+
+          seen++;
+
+          const title = (row.title || "").trim();
+          if (!title) return;
+
+          const year = toNumber(row.year);
+          const score = toNumber(row.score);
+          const episodes = toNumber(row.episodes);
+          const type = (row.type || "").trim();
+
+          const genres = parseGenres(row.genres);
+
+          // Documento que guardamos en Mongo
+          const doc = {
+            title,
+            year: year ?? undefined,
+            genres,
+            type: type || undefined,
+            episodes: episodes ?? undefined,
+            score: score ?? undefined,
+            _imported: true
+          };
+
+          bulk.push({ insertOne: { document: doc } });
+
+          if (bulk.length >= 1000) {
+            // metemos en bloques para ir rápido
+            collection.bulkWrite(bulk, { ordered: false }).catch(() => {});
+            bulk.length = 0;
+          }
+
+          inserted++;
+        })
+        .on("end", async () => {
+          if (bulk.length) {
+            try {
+              await collection.bulkWrite(bulk, { ordered: false });
+            } catch (_) {}
+          }
+          resolve();
+        })
+        .on("error", reject);
+    });
+
+    res.json({
+      ok: true,
+      message: "Import finished",
+      file,
+      scannedRows: seen,
+      inserted
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: "Import failed" });
+  }
+});
+
+
 /**
- * Arranque del servidor: primero conectamos a Mongo y luego escuchamos el puerto.
+ * Arranque del servidor: primero conecto a Mongo y luego escucho el puerto.
  */
 connectMongo()
   .then(() => {

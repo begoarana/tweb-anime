@@ -101,11 +101,21 @@
               {{#each results}}
                 <div class="list-group-item">
 
-                  {{!-- Línea principal: título y año --}}
+                  
                   <div class="d-flex justify-content-between">
-                    <strong>{{title}}</strong>
-                    {{#if year}}<span class="text-muted">{{year}}</span>{{/if}}
-                  </div>
+  <div>
+    <strong>{{title}}</strong>
+
+    <div class="small text-muted mt-1">
+      {{#if type}}<span class="me-2">Type: {{type}}</span>{{/if}}
+      {{#if episodes}}<span class="me-2">Episodes: {{episodes}}</span>{{/if}}
+      {{#if score}}<span class="me-2">Score: {{score}}</span>{{/if}}
+    </div>
+  </div>
+
+  {{#if year}}<span class="text-muted">{{year}}</span>{{/if}}
+</div>
+
 
                   {{!-- Línea secundaria: géneros en forma de “chips” --}}
                   {{#if genres}}

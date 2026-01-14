@@ -13,3 +13,8 @@ apache-maven-*/
 # OS
 .DS_Store
 Thumbs.db
+
+# Guías y documentación local (no subir a GitHub)
+COMANDOS_GITHUB.md
+GITHUB_GUIDE.md
+SOLUCION_REBASE.md

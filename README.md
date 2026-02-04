@@ -1,4 +1,4 @@
-﻿# proyecto anime tweb
+# proyecto anime tweb
 
 trabajo para la asignatura de tecnologias web
 
@@ -18,6 +18,7 @@ tengo que usar 3 servidores que se comunican entre ellos con axios
 
 de momento solo tengo el servidor principal
 
+
 ## como ejecutar
 
 npm install en main-server
@@ -26,3 +27,13 @@ npm start
 ---
 
 todavia falta mucho por hacer
+```
+
+**Commit message:** 
+```
+feat: setup inicial con servidor principal
+
+he creado el servidor main en express que va a coordinar los otros
+por ahora solo tiene rutas basicas y axios configurado
+falta conectarlo con los otros servidores
+```

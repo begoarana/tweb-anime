@@ -1,0 +1,6 @@
+﻿node_modules/
+.env
+*.log
+target/
+.DS_Store
+apache-maven-3.9.12/

@@ -1,0 +1,111 @@
+<div class="row g-3">
+  <div class="col-12">
+    <div class="p-4 bg-white rounded shadow-sm">
+      <h1 class="h3 mb-2">Anime Explorer</h1>
+      <p class="text-muted mb-0">
+        Central UI (Express + Handlebars). Searches are forwarded to the Mongo data server via Axios.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="p-4 bg-white rounded shadow-sm">
+      <h2 class="h5 mb-3">Search animes</h2>
+
+      <form method="GET" action="/search" class="row g-2 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label">Title</label>
+          <input
+            class="form-control"
+            name="q"
+            value="{{q}}"
+            placeholder="Naruto, One Piece..."
+          />
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Genre</label>
+
+          <select class="form-select" name="genre">
+            <option value="" {{#unless genre}}selected{{/unless}}>All</option>
+
+            {{#each genresList}}
+              <option value="{{this}}" {{#if (eq ../genre this)}}selected{{/if}}>
+                {{this}}
+              </option>
+            {{/each}}
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label">Sort</label>
+          <select class="form-select" name="sort">
+            <option value="title_asc" {{#if (eq sort "title_asc")}}selected{{/if}}>Title A-Z</option>
+            <option value="title_desc" {{#if (eq sort "title_desc")}}selected{{/if}}>Title Z-A</option>
+            <option value="year_asc" {{#if (eq sort "year_asc")}}selected{{/if}}>Year ↑</option>
+            <option value="year_desc" {{#if (eq sort "year_desc")}}selected{{/if}}>Year ↓</option>
+          </select>
+        </div>
+
+        <div class="col-md-1 d-grid">
+          <button class="btn btn-primary" type="submit">Go</button>
+        </div>
+      </form>
+
+      {{#if error}}
+        <div class="alert alert-danger mt-3 mb-0">{{error}}</div>
+      {{/if}}
+
+      {{#if results}}
+        <div class="mt-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h3 class="h6 mb-0">Results</h3>
+            <span class="badge bg-secondary">{{total}}</span>
+          </div>
+
+          {{#if results.length}}
+            <div class="list-group mt-2">
+              {{#each results}}
+                <div class="list-group-item">
+                  <div class="d-flex justify-content-between">
+                    <strong>{{title}}</strong>
+                    {{#if year}}<span class="text-muted">{{year}}</span>{{/if}}
+                  </div>
+
+                  {{#if genres}}
+                    <div class="small text-muted mt-1">
+                      Genres:
+                      {{#each genres}}
+                        <span class="badge bg-light text-dark border me-1">{{this}}</span>
+                      {{/each}}
+                    </div>
+                  {{/if}}
+                </div>
+              {{/each}}
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div class="text-muted small">Page {{page}} / {{totalPages}}</div>
+              <div class="d-flex gap-2">
+                {{#if hasPrev}}
+                  <a class="btn btn-outline-secondary btn-sm"
+                     href="/search?q={{q}}&genre={{genre}}&sort={{sort}}&page={{prevPage}}">
+                    Prev
+                  </a>
+                {{/if}}
+                {{#if hasNext}}
+                  <a class="btn btn-outline-secondary btn-sm"
+                     href="/search?q={{q}}&genre={{genre}}&sort={{sort}}&page={{nextPage}}">
+                    Next
+                  </a>
+                {{/if}}
+              </div>
+            </div>
+          {{else}}
+            <div class="alert alert-warning mt-3 mb-0">No results found.</div>
+          {{/if}}
+        </div>
+      {{/if}}
+    </div>
+  </div>
+</div>

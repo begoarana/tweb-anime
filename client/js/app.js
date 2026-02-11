@@ -164,4 +164,5 @@ window.viewAnimeDetails = viewAnimeDetails;
 window.scrollToSearch = scrollToSearch;
 window.scrollToTopRated = scrollToTopRated;
 
+
 console.log('App initialized!');
